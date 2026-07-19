@@ -99,11 +99,23 @@
     MM.store.user = null;
   }
 
+  // restore session on load
+  function restore() {
+    const s = currentSession();
+    if (s && s.id) {
+      const u = MM.store.users.find((x) => x.id === s.id);
+      if (u) MM.store.user = u;
+    }
+  }
+
   function currentUser() {
+    // Auto-restore if session exists but store.user is not set yet
+    // (fixes race when page scripts run before app.js initGlobal)
+    if (!MM.store.user) restore();
     return MM.store.user;
   }
-  function isLoggedIn() { return !!MM.store.user; }
-  function isAdmin() { return MM.store.user?.role === "admin"; }
+  function isLoggedIn() { return !!currentUser(); }
+  function isAdmin() { return currentUser()?.role === "admin"; }
 
   function requireAuth(redirect = "login.html") {
     if (!isLoggedIn()) {
@@ -126,15 +138,6 @@
     if (!MM.store.user) return;
     Object.assign(MM.store.user, patch);
     MM.store.updateUser(MM.store.user.id, patch);
-  }
-
-  // restore session on load
-  function restore() {
-    const s = currentSession();
-    if (s && s.id) {
-      const u = MM.store.users.find((x) => x.id === s.id);
-      if (u) MM.store.user = u;
-    }
   }
 
   MM.auth = {
