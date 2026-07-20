@@ -8,6 +8,8 @@
   "use strict";
   const MM = (window.MM = window.MM || {});
 
+  // Use localStorage (not sessionStorage) so the session survives tab
+  // switches, mobile browser backgrounding, and page reloads.
   const SESSION_KEY = "mathmaster.session";
 
   function hash(str) {
@@ -18,12 +20,30 @@
   }
 
   function currentSession() {
-    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null"); }
-    catch { return null; }
+    try {
+      // Prefer localStorage; fall back to sessionStorage for older sessions
+      const raw =
+        localStorage.getItem(SESSION_KEY) ||
+        sessionStorage.getItem(SESSION_KEY) ||
+        "null";
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
   }
   function setSession(s) {
-    if (s) sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
-    else sessionStorage.removeItem(SESSION_KEY);
+    try {
+      if (s) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+        // also clear any stale sessionStorage entry
+        sessionStorage.removeItem(SESSION_KEY);
+      } else {
+        localStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(SESSION_KEY);
+      }
+    } catch (e) {
+      console.warn("Session save failed", e);
+    }
   }
 
   function validateEmail(email) {
@@ -39,9 +59,16 @@
     if (Object.keys(errors).length) return { ok: false, errors };
 
     const exists = MM.store.users.some((u) => u.email === email);
-    if (exists) return { ok: false, errors: { email: "An account with this email already exists." } };
+    if (exists) {
+      return {
+        ok: false,
+        errors: {
+          email: "An account with this email already exists. Please sign in instead.",
+        },
+      };
+    }
 
-    const isAdmin = MM.store.users.length === 0; // first user becomes admin
+    const isAdmin = MM.store.users.filter((u) => !String(u.id).startsWith("demo_")).length === 0;
     const user = {
       id: MM.uid("usr"),
       name: name.trim(),
@@ -54,7 +81,7 @@
       title: "Math Explorer",
     };
     MM.store.addUser(user);
-    // auto login
+    // auto login — persist session + current user
     setSession({ id: user.id, at: Date.now() });
     MM.store.user = user;
     return { ok: true, user };
@@ -77,18 +104,23 @@
   }
 
   function loginDemo(role = "student") {
-    const user = {
-      id: MM.uid("demo"),
-      name: role === "admin" ? "Demo Admin" : "Demo Student",
-      email: `${role}@demo.math`,
-      pass: "",
-      avatar: null,
-      role,
-      joinedAt: Date.now(),
-      bio: "Exploring MathMaster with a demo account.",
-      title: role === "admin" ? "Administrator" : "Math Explorer",
-    };
-    MM.store.addUser(user);
+    // Reuse existing demo user if present so we don't flood the store
+    const email = role + "@demo.math";
+    let user = MM.store.users.find((u) => u.email === email);
+    if (!user) {
+      user = {
+        id: MM.uid("demo"),
+        name: role === "admin" ? "Demo Admin" : "Demo Student",
+        email,
+        pass: "",
+        avatar: null,
+        role,
+        joinedAt: Date.now(),
+        bio: "Exploring MathMaster with a demo account.",
+        title: role === "admin" ? "Administrator" : "Math Explorer",
+      };
+      MM.store.addUser(user);
+    }
     setSession({ id: user.id, at: Date.now(), demo: true });
     MM.store.user = user;
     return { ok: true, user };
@@ -104,8 +136,14 @@
     const s = currentSession();
     if (s && s.id) {
       const u = MM.store.users.find((x) => x.id === s.id);
-      if (u) MM.store.user = u;
+      if (u) {
+        MM.store.user = u;
+        return u;
+      }
+      // stale session — clear it
+      setSession(null);
     }
+    return null;
   }
 
   function currentUser() {
