@@ -13,6 +13,12 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/responsive.css" />
+  <style>
+    .eq { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 1.05rem; line-height: 1.5; }
+    .eq .frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 .2em; font-size: .92em; }
+    .eq .frac .num { border-bottom: 1.5px solid currentColor; padding: 0 .35em; line-height: 1.35; }
+    .eq .frac .den { padding: 0 .35em; line-height: 1.35; }
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -39,11 +45,23 @@
       </div>
       <div class="hero-visual reveal">
         <div class="float-card">
-          <div class="eq">\frac{a}{b} + \frac{c}{d} = \frac{ad + bc}{bd}</div>
+          <div class="eq">
+            <span class="frac"><span class="num">a</span><span class="den">b</span></span>
+            +
+            <span class="frac"><span class="num">c</span><span class="den">d</span></span>
+            =
+            <span class="frac"><span class="num">ad + bc</span><span class="den">bd</span></span>
+          </div>
           <div class="text-xs text-muted mt-2">Fractions · Worked example</div>
         </div>
         <div class="float-card" style="animation-delay:.4s;">
-          <div class="eq">x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}</div>
+          <div class="eq">
+            x =
+            <span class="frac">
+              <span class="num">−b ± √(b² − 4ac)</span>
+              <span class="den">2a</span>
+            </span>
+          </div>
           <div class="text-xs text-muted mt-2">Quadratic formula</div>
         </div>
       </div>
