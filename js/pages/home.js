@@ -1,6 +1,6 @@
 /* ===================================================================
    MathMaster — home.js
-   Renders the topics grid on the landing page + hero math formulas
+   Renders the topics grid on the landing page
    =================================================================== */
 (function () {
   "use strict";
@@ -8,14 +8,6 @@
   const { el } = MM;
 
   document.addEventListener("DOMContentLoaded", () => {
-    // Render LaTeX-style formulas in hero float cards
-    document.querySelectorAll(".eq").forEach((node) => {
-      const raw = node.textContent.trim();
-      if (raw && MM.ui && MM.ui.renderMath) {
-        node.innerHTML = MM.ui.renderMath(raw);
-      }
-    });
-
     const grid = document.getElementById("topicsGrid");
     if (!grid) return;
 

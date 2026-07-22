@@ -57,7 +57,7 @@
     MM.topics.forEach((t) => {
       const s = p.topicStats[t.id] || { attempts: 0, correct: 0 };
       const pct = s.attempts ? Math.round((s.correct / s.attempts) * 100) : 0;
-      const row = el("div", { html: `
+      const row = el("div", {}, `
         <div class="flex items-center justify-between mb-2">
           <div class="flex items-center gap-2">
             <span style="color:${t.color};">${MM.icon(t.icon, 18)}</span>
@@ -66,7 +66,7 @@
           <span class="text-xs text-muted">${s.correct}/${s.attempts} · ${pct}%</span>
         </div>
         <div class="progress sm"><div class="bar" style="width:${pct}%; background: ${pct >= 70 ? "var(--success)" : pct >= 40 ? "var(--warning)" : "var(--danger)"};"></div></div>
-      ` });
+      `);
       mList.appendChild(row);
     });
     masteryCard.querySelector("#masteryList").appendChild(mList);
